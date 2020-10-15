@@ -43,13 +43,34 @@ public class DenseMatrix implements Matrix
    */
   @Override public Matrix mul(Matrix o)
   {
-    DenseMatrix res = new DenseMatrix();
-    for (int i = 0; i < size; i++)
-      for (int j = 0; j < size; j++)
-        for(int k = 0; k < size; k++){
-          res.m[i][j] = this.m[i][k] + ((DenseMatrix)o).m[k][j];
+    if (o instanceof DenseMatrix) {
+      DenseMatrix res = new DenseMatrix();
+      for (int i = 0; i < size; i++)
+        for (int j = 0; j < size; j++)
+          for (int k = 0; k < size; k++) {
+            res.m[i][j] = m[i][k] + ((DenseMatrix) o).m[k][j];
+          }
+      return res;
+    }
+    else {
+      SparseMatrix res = new SparseMatrix();
+      SparseMatrix oT = (SparseMatrix) ((SparseMatrix)o).transponeMatrix();
+      for (int k = 0, i = 0; i < size; i++)
+        for (int j = 0; j < size; j++) {
+          int sum = 0;
+          res.LI[i] = k;
+          for (int s = 0; s < oT.LI[j+1]; s++) {
+            sum += m[i][oT.LJ[oT.LI[j]+s]] * oT.A[oT.LJ[oT.LI[j]+s]];
+          }
+          if (sum != 0) {
+            res.A[k] = sum;
+            res.LJ[k] = j;
+            res.LI[i + 1]++;
+            k++;
+          }
         }
-    return res;
+      return res;
+    }
   }
 
   /**
