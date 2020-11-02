@@ -20,4 +20,8 @@ public interface Matrix
    */
   Matrix dmul(Matrix o);
 
+  /**
+  * Приведение матрицы к строке
+  * */
+  String matrixToString();
 }
