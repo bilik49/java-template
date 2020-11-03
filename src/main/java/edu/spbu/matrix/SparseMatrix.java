@@ -109,51 +109,49 @@ public class SparseMatrix implements Matrix {
      */
     @Override
     public Matrix mul(Matrix o) {
-//        SparseMatrix res = new SparseMatrix(size);
-//        if (o instanceof SparseMatrix) {
-//            SparseMatrix oT = (SparseMatrix) ((SparseMatrix) o).transposeMatrix();
-//            for (int k = 0, i = 0; i < size; i++)
-//                for (int j = 0; j < size; j++) {
-//                    int sum = 0;
-//                    int r1 = 0, r2 = 0;
-//                    res.LI[i] = k;
-//                    while (r1 < LI[i + 1] || r2 < oT.LI[j + 1]) {
-//                        if (LJ[LI[i] + r1] == oT.LJ[oT.LI[j] + r2]) {
-//                            sum += A[LI[i] + r1] * oT.A[oT.LI[j] + r2];
-//                            r1++;
-//                            r2++;
-//                        } else if (LJ[LI[i] + r1] > oT.LJ[oT.LI[j] + r2]) {
-//                            r2++;
-//                        } else {
-//                            r1++;
-//                        }
-//                    }
-//                    if (sum != 0) {
-//                        res.A[k] = sum;
-//                        res.LJ[k] = j;
-//                        res.LI[i + 1]++;
-//                        k++;
-//                    }
-//                }
-//        }
-//        else {
-//            for (int k = 0, i = 0; i < size; i++)
-//                for (int j = 0; j < size; j++) {
-//                    int sum = 0;
-//                    res.LI[i] = k;
-//                    for (int s = 0; s < LI[i+1]; s++) {
-//                        sum += A[LJ[LI[j]+s]] * ((DenseMatrix)o).m[LJ[LI[j]+s]][j];
-//                    }
-//                    if (sum != 0) {
-//                        res.A[k] = sum;
-//                        res.LJ[k] = j;
-//                        res.LI[i + 1]++;
-//                        k++;
-//                    }
-//                }
-//        }
-//        return res;
-        return null;
+        SparseMatrix res = new SparseMatrix(size);
+        if (o instanceof SparseMatrix) {
+            ((SparseMatrix) o).transposeMatrix();
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    int sum = 0;
+                    // индексы идущие в массивах индексов столбцов для каждой строчки
+                    int r1 = 0, r2 = 0;
+                    while (r1 < LI.get(i + 1) - LI.get(i) && r2 < ((SparseMatrix) o).LI.get(j + 1) - ((SparseMatrix)o).LI.get(j)) {
+                        if (LJ.get(LI.get(i) + r1) == ((SparseMatrix) o).LJ.get(((SparseMatrix) o).LI.get(j) + r2)) {
+                            sum += A.get(LI.get(i) + r1) * ((SparseMatrix) o).A.get(((SparseMatrix) o).LI.get(j) + r2);
+                            r1++;
+                            r2++;
+                        } else if (LJ.get(LI.get(i) + r1) > ((SparseMatrix) o).LJ.get(((SparseMatrix) o).LI.get(j) + r2)) {
+                            r2++;
+                        } else {
+                            r1++;
+                        }
+                    }
+                    if (sum != 0) {
+                        res.A.add(sum);
+                        res.LJ.add(j);
+                    }
+                }
+                res.LI.add(res.A.size());
+            }
+        }
+        else {
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    int sum = 0;
+                    for (int s = 0; s < LI.get(i + 1) - LI.get(i); s++) {
+                        sum += A.get(LI.get(i) + s) * ((DenseMatrix) o).m[LJ.get(LI.get(i) + s)][j];
+                    }
+                    if (sum != 0) {
+                        res.A.add(sum);
+                        res.LJ.add(j);
+                    }
+                }
+                res.LI.add(res.A.size());
+            }
+        }
+        return res;
     }
 
     /**

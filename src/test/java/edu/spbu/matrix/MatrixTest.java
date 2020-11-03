@@ -48,7 +48,9 @@ public class MatrixTest
     Matrix m1 = new DenseMatrix("dm1.txt");
     Matrix m2 = new DenseMatrix("dm2.txt");
     Matrix expected = new DenseMatrix("resultDM1DM2.txt");
+
     Matrix actual = m1.mul(m2);
+
     assertEquals(expected, actual);
   }
 
@@ -60,38 +62,84 @@ public class MatrixTest
     Matrix m2 = new DenseMatrix("SM.txt");
     Matrix expected = ((DenseMatrix)m1.mul(m2)).DenseToSparse();
 
-    System.out.println(expected.matrixToString());
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
-      System.out.print(((SparseMatrix)expected).A.get(i) + " ");
-    }
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
-      System.out.print(((SparseMatrix)expected).LJ.get(i) + " ");
-    }
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)expected).size + 1; i++) {
-      System.out.print(((SparseMatrix)expected).LI.get(i) + " ");
-    }
-    System.out.println();
+//    System.out.println(expected.matrixToString());
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
+//      System.out.print(((SparseMatrix)expected).A.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
+//      System.out.print(((SparseMatrix)expected).LJ.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).size + 1; i++) {
+//      System.out.print(((SparseMatrix)expected).LI.get(i) + " ");
+//    }
+//    System.out.println();
 
     m2 = new SparseMatrix("SM.txt");
     Matrix actual = m1.mul(m2);
 
 
-    System.out.println(actual.matrixToString());
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)actual).A.size(); i++) {
-      System.out.print(((SparseMatrix)actual).A.get(i) + " ");
-    }
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)actual).A.size(); i++) {
-      System.out.print(((SparseMatrix)actual).LJ.get(i) + " ");
-    }
-    System.out.println();
-    for (int i = 0; i <((SparseMatrix)actual).size + 1; i++) {
-      System.out.print(((SparseMatrix)actual).LI.get(i) + " ");
-    }
+//    System.out.println(actual.matrixToString());
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)actual).A.size(); i++) {
+//      System.out.print(((SparseMatrix)actual).A.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)actual).A.size(); i++) {
+//      System.out.print(((SparseMatrix)actual).LJ.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)actual).size + 1; i++) {
+//      System.out.print(((SparseMatrix)actual).LI.get(i) + " ");
+//    }
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testSmulS() throws Exception {
+    Matrix m1 = new DenseMatrix("SM.txt");
+    Matrix m2 = new DenseMatrix("SM.txt");
+
+    Matrix expected = m1.mul(m2);
+    expected = ((DenseMatrix)expected).DenseToSparse();
+
+//    System.out.println(expected.matrixToString());
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
+//      System.out.print(((SparseMatrix)expected).A.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).A.size(); i++) {
+//      System.out.print(((SparseMatrix)expected).LJ.get(i) + " ");
+//    }
+//    System.out.println();
+//    for (int i = 0; i <((SparseMatrix)expected).size + 1; i++) {
+//      System.out.print(((SparseMatrix)expected).LI.get(i) + " ");
+//    }
+//    System.out.println();
+
+    m1 = new SparseMatrix("SM.txt");
+    m2 = new SparseMatrix("SM.txt");
+
+    Matrix actual = m1.mul(m2);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testSmulD() throws Exception {
+    Matrix m1 = new DenseMatrix("SM.txt");
+    Matrix m2 = new DenseMatrix("DM.txt");
+
+    Matrix expected = m1.mul(m2);
+    expected = ((DenseMatrix)expected).DenseToSparse();
+
+    m1 = new SparseMatrix("SM.txt");
+
+    Matrix actual = m1.mul(m2);
+
     assertEquals(expected, actual);
   }
 }
