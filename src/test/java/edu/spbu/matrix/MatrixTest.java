@@ -20,7 +20,7 @@ public class MatrixTest
 
   @Test
   public void testConstructorDenseMatrix() throws Exception {
-    DenseMatrix expected = new DenseMatrix(5);
+    DenseMatrix expected = new DenseMatrix(5, 5);
     expected.m = new int[][] {{32, -16, 88, -62, -65},
                               {-30, -36, -61, -41, 8},
                               {65, 76, -55, 94, 10},
@@ -79,7 +79,6 @@ public class MatrixTest
 
     m2 = new SparseMatrix("SM.txt");
     Matrix actual = m1.mul(m2);
-
 
 //    System.out.println(actual.matrixToString());
 //    System.out.println();

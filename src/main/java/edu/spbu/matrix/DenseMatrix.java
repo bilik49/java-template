@@ -9,7 +9,8 @@ import java.util.Scanner;
  */
 public class DenseMatrix implements Matrix
 {
-  int size;
+  int rows;
+  int cols;
   int[][] m;
   /**
    * загружает матрицу из файла
@@ -17,14 +18,18 @@ public class DenseMatrix implements Matrix
    */
   public DenseMatrix(String fileName) throws Exception {
     BufferedReader reader = new BufferedReader(new FileReader((fileName)));
-    int size = reader.readLine().split(" ").length;
+    int cols = reader.readLine().split(" ").length;
+    int rows = 1;
+    while (reader.readLine() != null) {
+      rows++;
+    }
     reader.close();
 
-    int[][] m = new int[size][size];
+    int[][] m = new int[rows][cols];
     Scanner scanner = new Scanner(new FileReader(fileName));
 
-    for (int i = 0; i < size; i++)
-      for (int j = 0; j < size; j++) {
+    for (int i = 0; i < rows; i++)
+      for (int j = 0; j < cols; j++) {
         if (scanner.hasNext()) {
           if (scanner.hasNextInt()) {
             m[i][j] = scanner.nextInt();
@@ -33,20 +38,22 @@ public class DenseMatrix implements Matrix
       }
     scanner.close();
 
-    this.size = size;
+    this.rows = rows;
+    this.cols = cols;
     this.m = m;
   }
 
-  public DenseMatrix(int size){
-    this.size = size;
-    this.m = new int[size][size];
+  public DenseMatrix(int rows, int cols){
+    this.rows = rows;
+    this.cols = cols;
+    this.m = new int[rows][cols];
   }
 
   public SparseMatrix DenseToSparse() {
-    SparseMatrix SM = new SparseMatrix(size);
+    SparseMatrix SM = new SparseMatrix(rows, cols);
 
-    for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         if (m[i][j] != 0) {
           SM.A.add(m[i][j]);
           SM.LJ.add(j);
@@ -71,11 +78,11 @@ public class DenseMatrix implements Matrix
     * DM x DM
     * */
     if (o instanceof DenseMatrix) {
-      DenseMatrix res = new DenseMatrix(size);
-      for (int i = 0; i < size; i++)
-        for (int j = 0; j < size; j++) {
+      DenseMatrix res = new DenseMatrix(rows, ((DenseMatrix) o).cols);
+      for (int i = 0; i < rows; i++)
+        for (int j = 0; j < ((DenseMatrix) o).cols; j++) {
           int sum = 0;
-          for (int k = 0; k < size; k++) {
+          for (int k = 0; k < cols; k++) {
             sum += m[i][k] * ((DenseMatrix) o).m[k][j];
             res.m[i][j] = sum;
           }
@@ -87,16 +94,16 @@ public class DenseMatrix implements Matrix
     * DM x SM
     * */
     else {
-      SparseMatrix res = new SparseMatrix(size);
+      SparseMatrix res = new SparseMatrix(rows, ((SparseMatrix) o).cols);
+      SparseMatrix so = (SparseMatrix)o;
+      so.transposeMatrix();
 
-      ((SparseMatrix)o).transposeMatrix();
-
-      for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
+      for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < so.rows; j++) {
           int sum = 0;
           // s идет по всем ненулевым элементам в транспонированной матрице в j-той строчке
-          for (int s = 0; s < ((SparseMatrix)o).LI.get(j + 1) - ((SparseMatrix)o).LI.get(j); s++) {
-            sum += m[i][((SparseMatrix)o).LJ.get(((SparseMatrix)o).LI.get(j) + s)] * ((SparseMatrix)o).A.get(((SparseMatrix)o).LI.get(j) + s);
+          for (int s = 0; s < so.LI.get(j + 1) - so.LI.get(j); s++) {
+            sum += m[i][so.LJ.get(so.LI.get(j) + s)] * so.A.get(so.LI.get(j) + s);
           }
           if (sum != 0) {
             res.A.add(sum);
@@ -128,16 +135,16 @@ public class DenseMatrix implements Matrix
   @Override public boolean equals(Object o) {
 
     if (o instanceof DenseMatrix) {
-      for (int i = 0; i < size; i++)
-        for (int j = 0; j < size; j++) {
+      for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++) {
           if (m[i][j] != ((DenseMatrix)o).m[i][j]){
             return false;
           }
         }
     }
     else {
-      for (int i = 0, k = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
+      for (int i = 0, k = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
           if (m[i][j] != 0) {
             if (m[i][j] != ((SparseMatrix)o).A.get(k)) {
               return false;
@@ -153,8 +160,8 @@ public class DenseMatrix implements Matrix
   @Override
   public String matrixToString() {
     String s= new String();
-    for (int i = 0; i < size; i++) {
-      for (int j = 0; j < size; j++) {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
         for (int k = 0; k < 6 - String.valueOf(m[i][j]).length(); k++) {
           s += " ";
         }

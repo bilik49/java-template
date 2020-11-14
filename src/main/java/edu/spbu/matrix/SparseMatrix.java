@@ -10,7 +10,8 @@ import java.util.Scanner;
  * Разряженная матрица
  */
 public class SparseMatrix implements Matrix {
-    int size;
+    int rows;
+    int cols;
     // Массив ненулевых значений матрицы
     ArrayList<Integer> A = new ArrayList<>();
     // Массив индексов столбцов: хранит номера столбцов, соответствующих элементов из массива значений.
@@ -25,14 +26,18 @@ public class SparseMatrix implements Matrix {
      */
     public SparseMatrix(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader((fileName)));
-        this.size = reader.readLine().split(" ").length;
+        int cols = reader.readLine().split(" ").length;
+        int rows = 1;
+        while (reader.readLine() != null) {
+            rows++;
+        }
         reader.close();
 
         this.LI.add(0);
 
         Scanner scanner = new Scanner(new File(fileName));
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 if (scanner.hasNextInt()) {
                     int x = scanner.nextInt();
                     if (x != 0) {
@@ -44,23 +49,27 @@ public class SparseMatrix implements Matrix {
             this.LI.add(this.A.size());
         }
         scanner.close();
+
+        this.rows = rows;
+        this.cols = cols;
     }
 
-    public SparseMatrix(int size) {
-        this.size = size;
+    public SparseMatrix(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
         this.LI.add(0);
     }
 
 
     public void transposeMatrix() {
         // массив векторов содержащих номера столбцов ненулевых значений для каждой строки
-        ArrayList<Integer>[] rowIndexVectors = new ArrayList[size];
-        for (int i = 0; i < size; i++)
+        ArrayList<Integer>[] rowIndexVectors = new ArrayList[cols];
+        for (int i = 0; i < cols; i++)
             rowIndexVectors[i] = new ArrayList<>();
         
         // сами значения сопоставленные rowIndexVectors
-        ArrayList<Integer>[] valueVectors = new ArrayList[size];
-        for (int i = 0; i < size; i++)
+        ArrayList<Integer>[] valueVectors = new ArrayList[cols];
+        for (int i = 0; i < cols; i++)
             valueVectors[i] = new ArrayList<>();
         
         // l - номер первой непустой строки
@@ -91,13 +100,17 @@ public class SparseMatrix implements Matrix {
         LI.clear();
         LI.add(0);
         
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < cols; i++) {
             for (int j = 0; j < rowIndexVectors[i].size(); j++) {
                 A.add(valueVectors[i].get(j));
                 LJ.add(rowIndexVectors[i].get(j));
             }
             LI.add(LI.get(i) + rowIndexVectors[i].size());
         }
+
+        int t = rows;
+        rows = cols;
+        cols = t;
     }
 
     /**
@@ -109,20 +122,22 @@ public class SparseMatrix implements Matrix {
      */
     @Override
     public Matrix mul(Matrix o) {
-        SparseMatrix res = new SparseMatrix(size);
+
         if (o instanceof SparseMatrix) {
-            ((SparseMatrix) o).transposeMatrix();
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
+            SparseMatrix res = new SparseMatrix(rows, ((SparseMatrix) o).cols);
+            SparseMatrix so = (SparseMatrix) o;
+            so.transposeMatrix();
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < so.rows; j++) {
                     int sum = 0;
                     // индексы идущие в массивах индексов столбцов для каждой строчки
                     int r1 = 0, r2 = 0;
-                    while (r1 < LI.get(i + 1) - LI.get(i) && r2 < ((SparseMatrix) o).LI.get(j + 1) - ((SparseMatrix)o).LI.get(j)) {
-                        if (LJ.get(LI.get(i) + r1) == ((SparseMatrix) o).LJ.get(((SparseMatrix) o).LI.get(j) + r2)) {
-                            sum += A.get(LI.get(i) + r1) * ((SparseMatrix) o).A.get(((SparseMatrix) o).LI.get(j) + r2);
+                    while (r1 < LI.get(i + 1) - LI.get(i) && r2 < so.LI.get(j + 1) - so.LI.get(j)) {
+                        if (LJ.get(LI.get(i) + r1) == so.LJ.get(so.LI.get(j) + r2)) {
+                            sum += A.get(LI.get(i) + r1) * so.A.get(so.LI.get(j) + r2);
                             r1++;
                             r2++;
-                        } else if (LJ.get(LI.get(i) + r1) > ((SparseMatrix) o).LJ.get(((SparseMatrix) o).LI.get(j) + r2)) {
+                        } else if (LJ.get(LI.get(i) + r1) > so.LJ.get(so.LI.get(j) + r2)) {
                             r2++;
                         } else {
                             r1++;
@@ -135,10 +150,12 @@ public class SparseMatrix implements Matrix {
                 }
                 res.LI.add(res.A.size());
             }
+            return res;
         }
         else {
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
+            SparseMatrix res = new SparseMatrix(rows, ((DenseMatrix)o).cols);
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < ((DenseMatrix) o).cols; j++) {
                     int sum = 0;
                     for (int s = 0; s < LI.get(i + 1) - LI.get(i); s++) {
                         sum += A.get(LI.get(i) + s) * ((DenseMatrix) o).m[LJ.get(LI.get(i) + s)][j];
@@ -150,8 +167,8 @@ public class SparseMatrix implements Matrix {
                 }
                 res.LI.add(res.A.size());
             }
+            return res;
         }
-        return res;
     }
 
     /**
@@ -179,15 +196,15 @@ public class SparseMatrix implements Matrix {
                     return false;
                 }
             }
-            for (int i = 1; i < size; i++) {
+            for (int i = 1; i < rows; i++) {
                 if (!LI.get(i).equals(((SparseMatrix) o).LI.get(i))) {
                     return false;
                 }
             }
         }
         else {
-            for (int i = 0, k = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
+            for (int i = 0, k = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
                     if (((DenseMatrix)o).m[i][j] != 0) {
                         if (((DenseMatrix)o).m[i][j] != A.get(k)) {
                             return false;
@@ -203,7 +220,7 @@ public class SparseMatrix implements Matrix {
     @Override
     public String matrixToString() {
         String str = new String();
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < rows; i++) {
             if (!LI.get(i).equals(LI.get(i + 1))) {
                 for (int j = 0; j < LJ.get(LI.get(i)); j++) {
                     for (int t = 0; t < 8; t++) str += " ";
@@ -223,13 +240,13 @@ public class SparseMatrix implements Matrix {
                 }
                 for (int t = 0; t < 9 - String.valueOf(A.get(LI.get(i + 1) - 1)).length(); t++) str += " ";
                 str += A.get(LI.get(i + 1) - 1) + " ";
-                for (int j = 0; j < size - 1 - LJ.get(LI.get(i + 1) - 1); j++) {
+                for (int j = 0; j < rows - 1 - LJ.get(LI.get(i + 1) - 1); j++) {
                     for (int t = 0; t < 8; t++) str += " ";
                     str += "0 ";
                 }
             }
             else {
-                for (int j = 0; j < size; j++) {
+                for (int j = 0; j < cols; j++) {
                     for (int t = 0; t < 8; t++) str += " ";
                     str += "0 ";
                 }
