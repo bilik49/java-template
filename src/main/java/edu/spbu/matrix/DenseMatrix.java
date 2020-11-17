@@ -3,7 +3,41 @@ package edu.spbu.matrix;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Scanner;
+import java.lang.Thread;
 
+
+class MultiMul implements Runnable
+{
+  DenseMatrix A, B;
+  volatile DenseMatrix res;
+  int startI, startJ;
+  int lastI, lastJ;
+
+
+  public MultiMul(DenseMatrix A, DenseMatrix B, DenseMatrix res, int startI, int startJ, int lastI, int lastJ) {
+    this.A = A;
+    this.B = B;
+    this.res = res;
+    this.startI = startI;
+    this.startJ = startJ;
+    this.lastI = lastI;
+    this.lastJ = lastJ;
+  }
+
+  @Override
+  public void run()
+  {
+    for (int i = startI; i <= lastI; i++) {
+      for (int j = startJ; j <= lastJ; j++) {
+        int sum = 0;
+        for (int k = 0; k < A.cols; k++) {
+          sum += A.m[i][k] * B.m[k][j];
+        }
+        res.m[i][j] = sum;
+      }
+    }
+  }
+}
 /**
  * Плотная матрица
  */
@@ -12,6 +46,7 @@ public class DenseMatrix implements Matrix
   int rows;
   int cols;
   int[][] m;
+
   /**
    * загружает матрицу из файла
    * @param fileName
@@ -122,9 +157,35 @@ public class DenseMatrix implements Matrix
    * @param o
    * @return
    */
-  @Override public Matrix dmul(Matrix o)
+  @Override
+  public Matrix dmul(Matrix o)
   {
-    return null;
+    DenseMatrix B = (DenseMatrix)o;
+    int rowsR1 = this.rows % 2 == 0 ? this.rows/2 : this.rows/2 + 1;
+    int colsR1 = B.cols % 2 == 0 ? B.cols/2 : B.cols/2 + 1;
+
+    DenseMatrix res = new DenseMatrix(this.rows, B.cols);
+
+    Thread[] threads = { new Thread(new MultiMul(this, B, res, 0,0, this.rows/2, B.cols/2)),
+          new Thread(new MultiMul(this, B, res, 0, colsR1, this.rows/2, B.cols - 1)),
+          new Thread(new MultiMul(this, B, res, rowsR1, 0, this.rows - 1, B.cols/2)),
+          new Thread(new MultiMul(this, B, res, rowsR1, colsR1, this.rows - 1, B.cols - 1))
+    };
+
+
+    for (Thread thread: threads) {
+      thread.start();
+    }
+
+    try {
+      for (int i = 0; i < threads.length; i++) {
+        threads[i].join();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return res;
   }
 
   /**
@@ -159,7 +220,7 @@ public class DenseMatrix implements Matrix
 
   @Override
   public String matrixToString() {
-    String s= new String();
+    String s= "";
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < cols; j++) {
         for (int k = 0; k < 6 - String.valueOf(m[i][j]).length(); k++) {
@@ -173,5 +234,7 @@ public class DenseMatrix implements Matrix
     }
     return s;
   }
+
+
 
 }

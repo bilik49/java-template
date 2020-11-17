@@ -44,6 +44,30 @@ public class MatrixTest
   }
 
   @Test
+  public void testDmulDmultiThreads() throws Exception {
+//    DenseMatrix m1 = new DenseMatrix("dm1.txt");
+//    DenseMatrix m2 = new DenseMatrix("dm2.txt");
+//    DenseMatrix expected = new DenseMatrix("resultDM1DM2.txt");
+//
+//    DenseMatrix actual = (DenseMatrix) m1.dmul(m2);
+
+//    new MatrixGenerator(3,1,"bigDM1", 2000).generate();
+//    new MatrixGenerator(4,1,"bigDM2", 2000).generate();
+
+    DenseMatrix m1 = new DenseMatrix("bigDM1");
+    DenseMatrix m2 = new DenseMatrix("bigDM2");
+
+    long start = System.currentTimeMillis();
+    DenseMatrix expected = (DenseMatrix) m1.mul(m2);
+    System.out.println("Single thread time: " +(System.currentTimeMillis() - start));
+
+    start = System.currentTimeMillis();
+    DenseMatrix actual = (DenseMatrix) m1.dmul(m2);
+    System.out.println("Multithreading time: " +(System.currentTimeMillis() - start));
+    assertEquals(expected, actual);
+  }
+
+  @Test
   public void testDmulD() throws Exception {
     Matrix m1 = new DenseMatrix("dm1.txt");
     Matrix m2 = new DenseMatrix("dm2.txt");
