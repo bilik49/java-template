@@ -6,7 +6,7 @@ import java.util.Scanner;
 import java.lang.Thread;
 
 
-class MultiMul implements Runnable
+class MultiMulDD implements Runnable
 {
   DenseMatrix A, B;
   volatile DenseMatrix res;
@@ -14,7 +14,7 @@ class MultiMul implements Runnable
   int lastI, lastJ;
 
 
-  public MultiMul(DenseMatrix A, DenseMatrix B, DenseMatrix res, int startI, int startJ, int lastI, int lastJ) {
+  public MultiMulDD(DenseMatrix A, DenseMatrix B, DenseMatrix res, int startI, int startJ, int lastI, int lastJ) {
     this.A = A;
     this.B = B;
     this.res = res;
@@ -166,10 +166,10 @@ public class DenseMatrix implements Matrix
 
     DenseMatrix res = new DenseMatrix(this.rows, B.cols);
 
-    Thread[] threads = { new Thread(new MultiMul(this, B, res, 0,0, this.rows/2, B.cols/2)),
-          new Thread(new MultiMul(this, B, res, 0, colsR1, this.rows/2, B.cols - 1)),
-          new Thread(new MultiMul(this, B, res, rowsR1, 0, this.rows - 1, B.cols/2)),
-          new Thread(new MultiMul(this, B, res, rowsR1, colsR1, this.rows - 1, B.cols - 1))
+    Thread[] threads = { new Thread(new MultiMulDD(this, B, res, 0,0, this.rows/2, B.cols/2)),
+          new Thread(new MultiMulDD(this, B, res, 0, colsR1, this.rows/2, B.cols - 1)),
+          new Thread(new MultiMulDD(this, B, res, rowsR1, 0, this.rows - 1, B.cols/2)),
+          new Thread(new MultiMulDD(this, B, res, rowsR1, colsR1, this.rows - 1, B.cols - 1))
     };
 
 

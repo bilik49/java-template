@@ -68,6 +68,24 @@ public class MatrixTest
   }
 
   @Test
+  public void testSmulSmultiThreads() throws Exception {
+//    new MatrixGenerator(3,10,"bigSM1", 5).generate();
+//    new MatrixGenerator(2,10,"bigSM2", 5).generate();
+
+    SparseMatrix m1 = new SparseMatrix("bigSM1");
+    SparseMatrix m2 = new SparseMatrix("bigSM2");
+
+    long start = System.currentTimeMillis();
+    SparseMatrix expected = (SparseMatrix) m1.mul(m2);
+    System.out.println("Single thread time: " +(System.currentTimeMillis() - start));
+
+    start = System.currentTimeMillis();
+    SparseMatrix actual = (SparseMatrix) m1.dmul(m2);
+    System.out.println("Multithreading time: " +(System.currentTimeMillis() - start));
+    assertEquals(expected, actual);
+  }
+
+  @Test
   public void testDmulD() throws Exception {
     Matrix m1 = new DenseMatrix("dm1.txt");
     Matrix m2 = new DenseMatrix("dm2.txt");
